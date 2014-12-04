@@ -15,11 +15,11 @@
 
 int totalSize = 0;
 
-segment_t* base = NULL;
+segment_t* start = NULL;
 
 segment_t* fusion(segment_t* segment) {
     if (segment->next && segment->next->status == FREE) {
-        segment->size += SEGMENT_SIZE + segment->next->size;
+        segment->size += segment->next->size;
         segment->next = segment->next->next;
         if (segment->next) {
             segment->next->prev = segment;
@@ -29,7 +29,7 @@ segment_t* fusion(segment_t* segment) {
 }
 
 segment_t* find_segment(segment_t** last , int size){
-    segment_t* segment = base;
+    segment_t* segment = start;
     while (segment && !(segment->status == FREE && segment->size >= size )) {
         *last = segment;
         segment = segment->next;
@@ -74,34 +74,34 @@ int getTotalSize() {
 }
 
 segment_t* getBase() {
-    return base;
+    return start;
 }
 
 segment_t* mem_alloc(int size) {
     segment_t* segment;
-    segment_t* last;
-    int size_t;
-    size_t = align4(size);
-    if (base) {
-        last = base;
-        segment = find_segment(&last, size_t);
+    segment_t* lastAllocated;
+    int allignedSize;
+    allignedSize = align4(size);
+    if (start) {
+        lastAllocated = start;
+        segment = find_segment(&lastAllocated, allignedSize);
         if (segment) {
-            if ((segment->size - size_t) >= (SEGMENT_SIZE + 4)) {
-                split_segment(segment, size_t);
+            if ((segment->size - allignedSize) >= (SEGMENT_SIZE + 4)) {
+                split_segment(segment, allignedSize);
             }
             segment->status = ALLOCATED;
         } else {
-            segment = extend_heap(last, size_t);
+            segment = extend_heap(lastAllocated, allignedSize);
             if (!segment) {
                 return NULL;
             }
         }
     } else {
-        segment = extend_heap(NULL, size_t);
+        segment = extend_heap(NULL, allignedSize);
         if (!segment) {
             return NULL;
         }
-        base = segment;
+        start = segment;
     }
     totalSize += segment->size;
     return segment;
@@ -119,7 +119,7 @@ void mem_free(segment_t* segment) {
         if (segment->prev) {
             segment->prev->next = NULL;
         } else {
-            base = NULL;
+            start = NULL;
         }
         brk(segment);
     }

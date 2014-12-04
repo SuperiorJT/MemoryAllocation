@@ -26,13 +26,6 @@ typedef struct segment {
 segment_t* mem_alloc(int);
 void mem_free(segment_t*);
 
-// Utility functions so that the above work correctly
-
-segment_t* fusion(segment_t*);
-segment_t* find_segment(segment_t**, int);
-segment_t* extend_heap(segment_t*, int);
-void split_segment(segment_t*, int);
-
 int getTotalSize();
 segment_t* getBase();
 
